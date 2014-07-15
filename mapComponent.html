@@ -141,9 +141,10 @@
         var map;
         var center;
         var markerFunctions;
+        var initialZoom = 8;
         function initialize() {
           var mapOptions = {
-            zoom: 8,
+            zoom: initialZoom,
             center: new google.maps.LatLng(centerLat, centerLng)
           };
           mapComponent = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
@@ -189,12 +190,24 @@
         var getMap = function() { return mapComponent; };
         var getMarkerFunctions = function() { return markerFunctions; };
 
+        var setZoom = function(zoom) {
+          if (zoom >= 0 && zoom <= 19){
+            mapComponent.setZoom(zoom);
+          }
+          else //TODO (jos) Exception handling on Android side
+            console.log('Zoom value ' + zoom + ' is not in the valid range 0-19');
+        };
+
+        var getZoom = function() { return mapComponent.zoom; };
+
         //API for the thisMap object: main entry object for functionality
         return {
           initialize: initialize,
           showCenter: showMarker,
           getMap: getMap, //TODO (jos) Do I need to expose the map?
-          getMarkerFunctions: getMarkerFunctions
+          getMarkerFunctions: getMarkerFunctions,
+          setZoom: setZoom,
+          getZoom: getZoom
         }
       //TODO (jos) Magic numbers: the center of the map has to be a variable. Will come from Android
       }(-34.397, 150.644, true); //Auto initialize the thisMap object
