@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>App Inventor - Map Component</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+    </style>
+    <!-- TODO (jos) take the API_KEY out of the String and as a property -->
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=YOUR_KEY_HERE"></script>
+    <script>
+      /**
+       * This map script is an abstraction of a number of functions from the Google maps
+       * JavaScript API to be used within a customized WebView as an App Inventor Component.
+       *
+       * It contains two main objects: thisMap and mapMarkers.
+       * thisMap initializes the map and makes user of mapMarkers, which simply encapsulates all
+       * functions related to markers placed in the map. It is possible to create other utility
+       * objects with other functionality in the SDK such as drawing, layers, or services.
+       */
+
+      /**
+       * This function returns an object with certain methods exposed as its API. The functionality
+       * of this object is related to management of markers in the map.
+       * @param map the map that all the methods in this object will be associated with.
+       * @returns {{addMarker: addMarker, addMarkersFromList: addMarkersFromList,
+       * addListenersUserMarkers: addListenersUserMarkers, showUserMarkers: showUserMarkers,
+       * hideUserMarkers: hideUserMarkers, deleteUserMarkers: deleteUserMarkers}}
+       */
+      var mapMarkers = function(map) {
+
+        if (!mapComponent) throw new Error('No map available');
+
+        var markers = [];
+        var markerCounter = -1;
+        function addMarker(location) {
+          var marker = new google.maps.Marker({
+            id: markerCounter+=1,
+            position: location,
+            animation: google.maps.Animation.DROP,
+            map: mapComponent
+          });
+          google.maps.event.addListener(marker, 'click', deletingMarker(markerCounter));
+          markers[markerCounter] = marker;
+        }
+
+        // Closure needed to associate each markerId with its delete function
+        function deletingMarker(markerId) {
+          return function(){
+            deleteMarker(markerId);
+          }
+        }
+
+        //TODO (jos) this is hiding, not deleting; if we delete and traverse
+        //the array, we might get some nulls - think about it.
+        function deleteMarker(markerId) {
+          markers[markerId].setMap(null);
+        };
+
+        function addMarkersFromList(listOfMarkers){
+          listOfMarkers.forEach(function(marker) { addMarker(marker); });
+        }
+
+        function addListenersUserMarkers(add) {
+          if (add){
+            google.maps.event.addListener(mapComponent, 'click', function(event) {
+              addMarker(event.latLng);
+            });
+          }
+          else
+            google.maps.event.clearListeners(mapComponent,'click');
+        }
+
+        //TODO (jos) on Android, if markers = [] I could show a Toast - Also on delete functions.
+        function showUserMarkers(){
+          markers.forEach(function(marker) { marker.setMap(mapComponent); });
+        }
+
+        function hideUserMarkers(){
+          markers.forEach(function(marker) { marker.setMap(null); });
+        }
+
+        function deleteUserMarkers(){
+          hideUserMarkers();
+          markers = [];
+          markerCounter = -1;
+        }
+
+        //API for the mapMarkers object
+        return {
+          addMarker: addMarker,
+          addMarkersFromList: addMarkersFromList,
+          addListenersUserMarkers: addListenersUserMarkers,
+          showUserMarkers: showUserMarkers,
+          hideUserMarkers: hideUserMarkers,
+          deleteUserMarkers: deleteUserMarkers
+        };
+
+      };
+
+
+      /**
+       * Main function for this script. Initializes the map and all the related functionality.
+       *
+       */
+      var thisMap = function(centerLat, centerLng, showCenter){
+      
+        var map;
+        var center;
+        var markerFunctions;
+        function initialize() {
+          var mapOptions = {
+            zoom: 8,
+            center: new google.maps.LatLng(centerLat, centerLng)
+          };
+          mapComponent = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+          center = createCenter();
+
+          showMarker(showCenter);
+
+          //Initialize marker functions object
+          markerFunctions = mapMarkers(mapComponent);
+          
+        }
+
+        var createCenter = function(){
+          var center;
+          if (mapComponent && mapComponent.getCenter()){
+              center = new google.maps.Marker({
+                position: mapComponent.getCenter(),
+                map: mapComponent,
+                title: 'Map Center',
+                icon: {
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 6
+                }
+              });
+          }
+          return center;
+        };
+
+        // Special case of showing a marker only for the center. Might be possible to abstract in
+        // markerFunctions, but leaving it here for now (jos).
+        var showMarker = function(show){
+          if (show){
+            if (center)
+              center.setMap(mapComponent);
+            else
+              center = createCenter();
+          }
+          else
+            center.setMap(null);
+        };
+
+        var getMap = function() { return mapComponent; };
+        var getMarkerFunctions = function() { return markerFunctions; };
+
+        //API for the thisMap object: main entry object for functionality
+        return {
+          initialize: initialize,
+          showCenter: showMarker,
+          getMap: getMap, //TODO (jos) Do I need to expose the map?
+          getMarkerFunctions: getMarkerFunctions
+        }
+      //TODO (jos) Magic numbers: the center of the map has to be a variable. Will come from Android
+      }(-34.397, 150.644, true); //Auto initialize the thisMap object
+
+      google.maps.event.addDomListener(window, 'load', thisMap.initialize);
+
+    </script>
+  </head>
+  <body>
+    <div id="map-canvas"></div>
+  </body>
+</html>
