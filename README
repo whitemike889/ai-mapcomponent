@@ -1,0 +1,15 @@
+An early version of the html+javascript that will power the App Inventor map
+component.
+
+I am trying to avoid all extra work for our users having to sign the app (needed
+when using the Android SDK) and instead using the JavaScript API (it only needs
+an API Key).
+
+The code is purposely built in one file, as it will be loaded into an Android
+WebView. This view has an interface for two way communication between Java and
+JavaScript, so the JavaScript in this file can be augmented with values from
+Java, and the Java side can also interact with the JavaScript.
+
+More coming soon.
+
+jos - July 2o14
