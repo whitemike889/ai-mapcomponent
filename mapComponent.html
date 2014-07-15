@@ -91,6 +91,33 @@
           markerCounter = -1;
         }
 
+        //Geolocation service
+        function geolocate(address){
+          var geocoder = new google.maps.Geocoder();
+          geocoder.geocode({address: address}, geolocationResults)
+        }
+
+        //TODO (jos) explicit Exception handling for results will be done in the Android side
+        var geolocationResults = function(results, status){
+          if (status === 'OK') {
+            var firstLocationFound = results[0].geometry.location;
+            if (firstLocationFound){
+              console.log(firstLocationFound);
+              addMarker(firstLocationFound);
+              map.panTo(firstLocationFound);
+            }
+            else {
+              console.log('No location found!');
+            }
+          }
+          else if (status === "ZERO_RESULTS"){
+            console.log('No results found for that particular address.');
+          }
+          else {
+            console.log('No results found. Status of Gelocation call: ' + status);
+          }
+        }
+
         //API for the mapMarkers object
         return {
           addMarker: addMarker,
@@ -98,7 +125,8 @@
           addListenersUserMarkers: addListenersUserMarkers,
           showUserMarkers: showUserMarkers,
           hideUserMarkers: hideUserMarkers,
-          deleteUserMarkers: deleteUserMarkers
+          deleteUserMarkers: deleteUserMarkers,
+          geolocate: geolocate
         };
 
       };
