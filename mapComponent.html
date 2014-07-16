@@ -202,7 +202,8 @@
 
         //TODO (jos) check ranges of values for long coords
         /**
-         * Generates a LatLng map object from coordinates passed in as a string.
+         * Generates a LatLng map object from coordinates passed in as a string. Valid ranges are:
+         * Lat [-90, 90], and Lng [-180, 180].
          * @param locationText a string in the format 'float, float'
          * @returns {*} a LatLng object of null if the location is not in the right format.
          */
@@ -216,6 +217,8 @@
             lng = parseFloat(locationSplit[1]);
             if (isNaN(lat) || isNaN(lng))
               errorParsing = true;
+            if (lat < -90 || lat > 90) errorParsing = true;
+            if (lng < -180 || lng > 180) errorParsing = true;
           }
           else {
             errorParsing = true;
