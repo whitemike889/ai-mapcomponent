@@ -200,6 +200,33 @@
 
         var getZoom = function() { return mapComponent.zoom; };
 
+        //TODO (jos) check ranges of values for long coords
+        /**
+         * Generates a LatLng map object from coordinates passed in as a string.
+         * @param locationText a string in the format 'float, float'
+         * @returns {*} a LatLng object of null if the location is not in the right format.
+         */
+        var locationFromTextCoords = function(locationText) {
+          var lat, lng;
+          var errorParsing = false;
+
+          var locationSplit = locationText.split(',');
+          if (locationSplit.length === 2){
+            lat = parseFloat(locationSplit[0]);
+            lng = parseFloat(locationSplit[1]);
+            if (isNaN(lat) || isNaN(lng))
+              errorParsing = true;
+          }
+          else {
+            errorParsing = true;
+          }
+
+          if (errorParsing)
+            return null;
+          else
+            return new google.maps.LatLng(lat, lng);
+        };
+
         //API for the thisMap object: main entry object for functionality
         return {
           initialize: initialize,
@@ -207,7 +234,8 @@
           getMap: getMap, //TODO (jos) Do I need to expose the map?
           getMarkerFunctions: getMarkerFunctions,
           setZoom: setZoom,
-          getZoom: getZoom
+          getZoom: getZoom,
+          locationFromTextCoords: locationFromTextCoords
         }
       //TODO (jos) Magic numbers: the center of the map has to be a variable. Will come from Android
       }(-34.397, 150.644, true); //Auto initialize the thisMap object
