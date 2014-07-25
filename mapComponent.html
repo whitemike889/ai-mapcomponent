@@ -45,22 +45,24 @@
             animation: google.maps.Animation.DROP,
             map: mapComponent
           });
-          google.maps.event.addListener(marker, 'click', deletingMarker(markerCounter));
+          google.maps.event.addListener(marker, 'click', markerClicked(markerCounter));
           markers[markerCounter] = marker;
         }
 
-        // Closure needed to associate each markerId with its delete function
-        function deletingMarker(markerId) {
+        // Closure needed to associate each markerId with its click handler function
+        function markerClicked(markerId) {
           return function(){
-            deleteMarker(markerId);
+            handleMarkerById(markerId);
           }
         }
 
-        //TODO (jos) this is hiding, not deleting; if we delete and traverse
-        //the array, we might get some nulls - think about it.
-        function deleteMarker(markerId) {
-          markers[markerId].setMap(null);
+        function handleMarkerById(markerId) {
           sendMarkerToAndroid(markerId);
+        };
+
+        function hideMarker(markerId) {
+          if (markers[markerId])
+            markers[markerId].setMap(null);
         };
 
         /**
@@ -135,7 +137,8 @@
           showUserMarkers: showUserMarkers,
           hideUserMarkers: hideUserMarkers,
           deleteUserMarkers: deleteUserMarkers,
-          geolocate: geolocate
+          geolocate: geolocate,
+          hideMarker: hideMarker
         };
 
       };
