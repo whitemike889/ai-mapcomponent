@@ -129,6 +129,22 @@
           }
         }
 
+        // InfoWindow functions
+        var createInfoWindow = function(markerId, content) {
+          var infoWindow = new google.maps.InfoWindow({
+            content: content
+          });
+          var marker = markers[markerId];
+          if (marker)
+            marker.info = infoWindow;
+        };
+
+        var openInfoWindow = function(markerId){
+          var marker = markers[markerId];
+          if (marker)
+            marker.info.open(map, marker)
+        }
+
         //API for the mapMarkers object
         return {
           addMarker: addMarker,
@@ -138,7 +154,10 @@
           hideUserMarkers: hideUserMarkers,
           deleteUserMarkers: deleteUserMarkers,
           geolocate: geolocate,
-          hideMarker: hideMarker
+          hideMarker: hideMarker,
+          userMarkers: markers,
+          createInfoWindow: createInfoWindow,
+          openInfoWindow: openInfoWindow
         };
 
       };
