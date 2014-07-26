@@ -38,16 +38,21 @@
 
         var markers = [];
         var markerCounter = -1;
-        function addMarker(location) {
+        var addMarker = function (location, title, infoWindowContent) {
           var marker = new google.maps.Marker({
             id: markerCounter+=1,
             position: location,
             animation: google.maps.Animation.DROP,
+            title: title || '',
             map: mapComponent
           });
           google.maps.event.addListener(marker, 'click', markerClicked(markerCounter));
           markers[markerCounter] = marker;
-        }
+
+          if (infoWindowContent){
+            createInfoWindow(markerCounter, infoWindowContent);
+          }
+        };
 
         // Closure needed to associate each markerId with its click handler function
         function markerClicked(markerId) {
