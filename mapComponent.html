@@ -146,7 +146,7 @@
 
         var openInfoWindow = function(markerId){
           var marker = markers[markerId];
-          if (marker)
+          if (marker && marker.info)
             marker.info.open(map, marker)
         }
 
