@@ -40,17 +40,27 @@
         var markers = [];
         var markerCounter = -1;
 
-        var addMarker = function (location, title, infoWindowContent) {
+        var addMarker = function (location, title, infoWindowContent, markerId) {
           if (location instanceof google.maps.LatLng){
+            var theId;
+            if (markerId >= 0) {
+              // It might already exist, delete it first and then reuse the id.
+              if (markers[markerId]) {
+                markers[markerId].setMap(null);
+              }
+
+              theId = markerId;
+            }
+            else theId = markerCounter+=1;
             var marker = new google.maps.Marker({
-              id: markerCounter+=1,
+              id: theId,
               position: location,
               animation: google.maps.Animation.DROP,
               title: title || '',
               map: mapComponent
             });
             google.maps.event.addListener(marker, 'click', markerClicked(markerCounter));
-            markers[markerCounter] = marker;
+            markers[theId] = marker;
 
             if (infoWindowContent) {
               createInfoWindow(markerCounter, infoWindowContent);
@@ -80,8 +90,52 @@
         };
 
         //TODO (jos) this function has to change now to take care of title and infoWindow
-        function addMarkersFromList(listOfMarkers){
-          listOfMarkers.forEach(function(marker) { addMarker(marker); });
+        /**
+         * Sample data:
+         * "[
+         *     {"id":0,"lat":48.856614,"lng":2.3522219000000177},
+         *     {"id":1,"lat":48,"lng":3,"title":"near paris","content":"near Paris content"}
+         *  ]"
+         */
+        var addMarkersFromList = function(listOfMarkers) {
+          var allMarkers = [];
+          try{
+            allMarkers = JSON.parse(listOfMarkers);
+          }
+          catch(parseError) {
+            console.log('List of Markers is not valid JSON.');
+            androidObject.dispatchErrorToAndroid(androidObject.ERROR_PARSING_MARKERS_LIST)
+          }
+
+          function decodeMarker(markerObject){
+            var markerData = [];
+
+            if (markerObject.lat && markerObject.lng)
+              //TODO (jos) move locationFromTextCoordinates to this object and use it here?
+              markerData[0] = new google.maps.LatLng(markerObject.lat, markerObject.lng);
+
+            if (markerObject.title)
+              markerData[1] = markerObject.title;
+
+            if (markerObject.content)
+              markerData[2] = markerObject.content;
+
+            if (markerObject.id >= 0)
+              markerData[3] = markerObject.id;
+
+            // Location has to be available(other fields are optional).
+            if (markerData[0] instanceof google.maps.LatLng)
+              return markerData;
+            else //TODO (jos) trigger user feedback or not?
+              return null;
+          }
+
+          allMarkers.forEach(function(markerObject) {
+            // Try to decode each marker and even if some fail, still add the others.
+            var markerData = decodeMarker(markerObject);
+            if (markerData)
+              addMarker(markerData[0], markerData[1], markerData[2], markerData[3]);
+          });
         }
 
         function addListenersUserMarkers(add) {
@@ -302,14 +356,15 @@
           locationFromTextCoords: locationFromTextCoords
         }
       //TODO (jos) Magic numbers: the center of the map has to be a variable. Will come from Android
-      }(-34.397, 150.644, true); //Auto initialize the thisMap object
+      }(48, 3, true); //Auto initialize the thisMap object
 
       //TODO (jos) Can I somehow inject this object (or inject something in this object) to
       // handle user feedback also on the JavaScript side?
       var androidObject = {
 
-        // CONSTANTS FOR ERRORS
-        ERROR_ILLEGAL_COORDS_FORMAT: 2502, // As defined on the Android side.
+        // CONSTANTS FOR ERRORS, As defined on the Android side.
+        ERROR_ILLEGAL_COORDS_FORMAT: 2502,
+        ERROR_PARSING_MARKERS_LIST: 2503,
 
         /**
          * Function to dispatch errors to Android through the AppInventorMap interface. If this
