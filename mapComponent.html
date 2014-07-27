@@ -38,19 +38,26 @@
 
         var markers = [];
         var markerCounter = -1;
-        var addMarker = function (location, title, infoWindowContent) {
-          var marker = new google.maps.Marker({
-            id: markerCounter+=1,
-            position: location,
-            animation: google.maps.Animation.DROP,
-            title: title || '',
-            map: mapComponent
-          });
-          google.maps.event.addListener(marker, 'click', markerClicked(markerCounter));
-          markers[markerCounter] = marker;
 
-          if (infoWindowContent){
-            createInfoWindow(markerCounter, infoWindowContent);
+        var addMarker = function (location, title, infoWindowContent) {
+          if (location instanceof google.maps.LatLng){
+            var marker = new google.maps.Marker({
+              id: markerCounter+=1,
+              position: location,
+              animation: google.maps.Animation.DROP,
+              title: title || '',
+              map: mapComponent
+            });
+            google.maps.event.addListener(marker, 'click', markerClicked(markerCounter));
+            markers[markerCounter] = marker;
+
+            if (infoWindowContent) {
+              createInfoWindow(markerCounter, infoWindowContent);
+            }
+          }
+          else {
+            console.log('Calling Error handler on Android side');
+            androidObject.dispatchErrorToAndroid(androidObject.ERROR_ILLEGAL_COORDS_FORMAT);
           }
         };
 
@@ -260,26 +267,12 @@
           }
 
           if (errorParsing){
-            var ERROR_ILLEGAL_COORDS_FORMAT = 2502; // As defined on the Android side.
-            dispatchErrorToAndroid(ERROR_ILLEGAL_COORDS_FORMAT);
+            androidObject.dispatchErrorToAndroid(androidObject.ERROR_ILLEGAL_COORDS_FORMAT);
             return null;
           }
           else
             return new google.maps.LatLng(lat, lng);
         };
-
-        /**
-         * Function to dispatch errors to Android through the AppInventorMap interface. If this
-         * file is loaded on a browser, AppInventorMap will be undefined and we skip the
-         * dispatching.
-         * TODO (jos) think about Error handling in JS if I even want to use this file standalone.
-         * @param errorNumber number for the message to display as user feedback on the Android
-         * side. The messages are defined in ErrorMessages.java
-         */
-        var dispatchErrorToAndroid = function(errorNumber) {
-          if (typeof AppInventorMap !== 'undefined')
-            AppInventorMap.dispatchError(errorNumber);
-        }
 
         //API for the thisMap object: main entry object for functionality
         return {
@@ -293,6 +286,28 @@
         }
       //TODO (jos) Magic numbers: the center of the map has to be a variable. Will come from Android
       }(-34.397, 150.644, true); //Auto initialize the thisMap object
+
+      //TODO (jos) Can I somehow inject this object (or inject something in this object) to
+      // handle user feedback also on the JavaScript side?
+      var androidObject = {
+
+        // CONSTANTS FOR ERRORS
+        ERROR_ILLEGAL_COORDS_FORMAT: 2502, // As defined on the Android side.
+
+        /**
+         * Function to dispatch errors to Android through the AppInventorMap interface. If this
+         * file is loaded on a browser, AppInventorMap will be undefined and we skip the
+         * dispatching.
+         * TODO (jos) think about Error handling in JS if I even want to use this file standalone.
+         * @param errorNumber number for the message to display as user feedback on the Android
+         * side. The messages are defined in ErrorMessages.java
+         */
+        dispatchErrorToAndroid: function(errorNumber) {
+          if (typeof AppInventorMap !== 'undefined')
+            AppInventorMap.dispatchError(errorNumber);
+        }
+
+      };
 
       google.maps.event.addDomListener(window, 'load', thisMap.initialize);
 
