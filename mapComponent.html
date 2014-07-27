@@ -59,11 +59,11 @@
               title: title || '',
               map: mapComponent
             });
-            google.maps.event.addListener(marker, 'click', markerClicked(markerCounter));
+            google.maps.event.addListener(marker, 'click', markerClicked(theId));
             markers[theId] = marker;
 
             if (infoWindowContent) {
-              createInfoWindow(markerCounter, infoWindowContent);
+              createInfoWindow(theId, infoWindowContent);
             }
           }
           else {
