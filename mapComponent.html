@@ -125,6 +125,8 @@
             allMarkers.push(mark);
           });
 
+          androidObject.sendListOfMarkersToAndroid(JSON.stringify(allMarkers));
+
           return allMarkers;
         };
 
@@ -328,6 +330,14 @@
         sendMarkerToAndroid: function(markerId) {
           if (typeof AppInventorMap !== 'undefined')
             AppInventorMap.handleMarker(markerId);
+        },
+
+        /**
+         * Function to export all markers to the Android side for storage
+         */
+        sendListOfMarkersToAndroid: function(markers) {
+          if (typeof AppInventorMap !== 'undefined')
+            AppInventorMap.storeMarkers(markers);
         }
 
       };
