@@ -69,21 +69,14 @@
         }
 
         function handleMarkerById(markerId) {
-          sendMarkerToAndroid(markerId);
+          console.log('Signaling Android side to do something with marker ' + markerId);
+          androidObject.sendMarkerToAndroid(markerId);
         };
 
         function hideMarker(markerId) {
           if (markers[markerId])
             markers[markerId].setMap(null);
         };
-
-        /**
-         * Function to call to the Android side after a user has clicked on a marker
-         */
-        var sendMarkerToAndroid = function(markerId) {
-          if (typeof AppInventorMap !== 'undefined')
-            AppInventorMap.handleMarker(markerId);
-        }
 
         function addMarkersFromList(listOfMarkers){
           listOfMarkers.forEach(function(marker) { addMarker(marker); });
@@ -305,6 +298,14 @@
         dispatchErrorToAndroid: function(errorNumber) {
           if (typeof AppInventorMap !== 'undefined')
             AppInventorMap.dispatchError(errorNumber);
+        },
+
+        /**
+         * Function to call to the Android side after a user has clicked on a marker
+         */
+        sendMarkerToAndroid: function(markerId) {
+          if (typeof AppInventorMap !== 'undefined')
+            AppInventorMap.handleMarker(markerId);
         }
 
       };
