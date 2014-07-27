@@ -36,6 +36,7 @@
 
         if (!mapComponent) throw new Error('No map available');
 
+        //TODO (jos) abandon the idea of user vs dev markers; they are all user markers.
         var markers = [];
         var markerCounter = -1;
 
@@ -78,6 +79,7 @@
             markers[markerId].setMap(null);
         };
 
+        //TODO (jos) this function has to change now to take care of title and infoWindow
         function addMarkersFromList(listOfMarkers){
           listOfMarkers.forEach(function(marker) { addMarker(marker); });
         }
@@ -106,6 +108,25 @@
           markers = [];
           markerCounter = -1;
         }
+
+        var storeMarkers = function () {
+          var allMarkers = [];
+          markers.forEach(function(marker){
+
+            var mark = {};
+            mark.id = marker.id; //Are we going to need ids? recreate when load from list?
+            mark.lat = marker.getPosition().lat();
+            mark.lng = marker.getPosition().lng();
+            if (marker.title)
+              mark.title = marker.title;
+            if (marker.info)
+              mark.content = marker.info.content;
+
+            allMarkers.push(mark);
+          });
+
+          return allMarkers;
+        };
 
         //Geolocation service
         function geolocate(address){
@@ -158,6 +179,7 @@
           showUserMarkers: showUserMarkers,
           hideUserMarkers: hideUserMarkers,
           deleteUserMarkers: deleteUserMarkers,
+          storeMarkers: storeMarkers,
           geolocate: geolocate,
           hideMarker: hideMarker,
           userMarkers: markers,
