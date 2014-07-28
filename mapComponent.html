@@ -89,7 +89,6 @@
             markers[markerId].setMap(null);
         };
 
-        //TODO (jos) this function has to change now to take care of title and infoWindow
         /**
          * Sample data:
          * "[
@@ -111,7 +110,6 @@
             var markerData = [];
 
             if (markerObject.lat && markerObject.lng)
-              //TODO (jos) move locationFromTextCoordinates to this object and use it here?
               markerData[0] = locationFromTextCoords(markerObject.lat + ', ' + markerObject.lng);
 
             if (markerObject.title)
@@ -238,7 +236,7 @@
             console.log('No results found for that particular address.');
           }
           else {
-            console.log('No results found. Status of Gelocation call: ' + status);
+            console.log('No results found. Status of Geolocation call: ' + status);
           }
         }
 
