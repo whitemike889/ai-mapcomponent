@@ -167,7 +167,7 @@
             return new google.maps.LatLng(lat, lng);
         };
 
-        function addListenersUserMarkers(add) {
+        var addListenersUserMarkers = function (add) {
           if (add){
             google.maps.event.addListener(mapComponent, 'click', function(event) {
               addMarker(event.latLng);
@@ -175,22 +175,22 @@
           }
           else
             google.maps.event.clearListeners(mapComponent,'click');
-        }
+        };
 
         //TODO (jos) on Android, if markers = [] I could show a Toast - Also on delete functions.
-        function showUserMarkers(){
+        var showUserMarkers = function (){
           markers.forEach(function(marker) { marker.setMap(mapComponent); });
-        }
+        };
 
-        function hideUserMarkers(){
+        var hideUserMarkers = function (){
           markers.forEach(function(marker) { marker.setMap(null); });
-        }
+        };
 
-        function deleteUserMarkers(){
+        var deleteUserMarkers = function (){
           hideUserMarkers();
           markers = [];
           markerCounter = -1;
-        }
+        };
 
         var storeMarkers = function () {
           var allMarkers = [];
@@ -214,10 +214,10 @@
         };
 
         //Geolocation service
-        function geolocate(address){
+        var geolocate = function (address){
           var geocoder = new google.maps.Geocoder();
           geocoder.geocode({address: address}, geolocationResults)
-        }
+        };
 
         //TODO (jos) explicit Exception handling for results will be done in the Android side
         var geolocationResults = function(results, status){
@@ -238,7 +238,7 @@
           else {
             console.log('No results found. Status of Geolocation call: ' + status);
           }
-        }
+        };
 
         // InfoWindow functions
         var createInfoWindow = function(markerId, content) {
