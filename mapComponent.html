@@ -198,12 +198,13 @@
 
             var mark = {};
             mark.id = marker.id; //Are we going to need ids? recreate when load from list?
-            mark.lat = marker.getPosition().lat();
-            mark.lng = marker.getPosition().lng();
-            if (marker.title)
-              mark.title = marker.title;
-            if (marker.info)
+            mark.locationCoords = marker.getPosition().lat() + ',' + marker.getPosition().lng();
+              mark.title = marker.title || '';
+            if (marker.info && marker.info.content)
               mark.content = marker.info.content;
+            else
+              mark.content = '';
+
 
             allMarkers.push(mark);
           });
