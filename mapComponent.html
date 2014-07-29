@@ -83,7 +83,7 @@
           androidObject.sendMarkerToAndroid(markerId);
         };
 
-        function hideMarker(markerId) {
+        var hideMarker = function(markerId) {
           if (markers[markerId])
             markers[markerId].setMap(null);
         };
