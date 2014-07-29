@@ -285,16 +285,16 @@
        * Main function for this script. Initializes the map and all the related functionality.
        *
        */
-      var thisMap = function(centerLat, centerLng, showCenter){
+      var thisMap = function(centerLat, centerLng, showCenter, initialZoom){
       
         var map;
         var centerMarker;
         var markerFunctions;
-        var initialZoom = 8;
+        var zoom = initialZoom || 6;
         var showingCenter = showCenter || true;
         function initialize() {
           var mapOptions = {
-            zoom: initialZoom,
+            zoom: zoom,
             center: new google.maps.LatLng(centerLat, centerLng)
           };
           mapComponent = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
@@ -373,7 +373,7 @@
           getZoom: getZoom
         }
       //TODO (jos) Magic numbers: the center of the map has to be a variable. Will come from Android
-      }(48, 3, true); //Auto initialize the thisMap object
+      }(48, 3, true, 6); //Auto initialize the thisMap object
 
       //TODO (jos) Can I somehow inject this object (or inject something in this object) to
       // handle user feedback also on the JavaScript side?
