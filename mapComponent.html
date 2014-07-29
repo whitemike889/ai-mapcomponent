@@ -109,8 +109,8 @@
           function decodeMarker(markerObject){
             var markerData = [];
 
-            if (markerObject.lat && markerObject.lng)
-              markerData[0] = locationFromTextCoords(markerObject.lat + ', ' + markerObject.lng);
+            if (markerObject.locationCoords)
+              markerData[0] = locationFromTextCoords(markerObject.locationCoords);
 
             if (markerObject.title)
               markerData[1] = markerObject.title;
@@ -197,7 +197,7 @@
           markers.forEach(function(marker){
 
             var mark = {};
-            mark.id = marker.id; //Are we going to need ids? recreate when load from list?
+            mark.id = marker.id;
             mark.locationCoords = marker.getPosition().lat() + ',' + marker.getPosition().lng();
               mark.title = marker.title || '';
             if (marker.info && marker.info.content)
