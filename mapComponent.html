@@ -300,7 +300,7 @@
 
           center = createCenter();
 
-          showMarker(showCenter);
+          showCenter(showCenter);
 
           //Initialize marker functions object
           markerFunctions = mapMarkers(mapComponent);
@@ -325,7 +325,7 @@
 
         // Special case of showing a marker only for the center. Might be possible to abstract in
         // markerFunctions, but leaving it here for now (jos).
-        var showMarker = function(show){
+        var showCenter = function(show){
           if (show){
             if (center)
               center.setMap(mapComponent);
@@ -352,7 +352,7 @@
         //API for the thisMap object: main entry object for functionality
         return {
           initialize: initialize,
-          showCenter: showMarker,
+          showCenter: showCenter,
           getMap: getMap, //TODO (jos) Do I need to expose the map?
           getMarkerFunctions: getMarkerFunctions,
           setZoom: setZoom,
