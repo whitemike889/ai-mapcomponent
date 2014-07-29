@@ -288,9 +288,10 @@
       var thisMap = function(centerLat, centerLng, showCenter){
       
         var map;
-        var center;
+        var centerMarker;
         var markerFunctions;
         var initialZoom = 8;
+        var showingCenter = showCenter || true;
         function initialize() {
           var mapOptions = {
             zoom: initialZoom,
@@ -298,9 +299,8 @@
           };
           mapComponent = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-          center = createCenter();
-
-          showCenter(showCenter);
+          centerMarker = createCenter();
+          showCenter(showingCenter);
 
           //Initialize marker functions object
           markerFunctions = mapMarkers(mapComponent);
@@ -308,9 +308,10 @@
         }
 
         var createCenter = function(){
-          var center;
+          if (centerMarker) centerMarker.setMap(null); // Delete any existing center first.
+          var newCenter;
           if (mapComponent && mapComponent.getCenter()){
-              center = new google.maps.Marker({
+              newCenter = new google.maps.Marker({
                 position: mapComponent.getCenter(),
                 map: mapComponent,
                 title: 'Map Center',
@@ -320,20 +321,32 @@
                 }
               });
           }
-          return center;
+          return newCenter;
         };
 
         // Special case of showing a marker only for the center. Might be possible to abstract in
         // markerFunctions, but leaving it here for now (jos).
         var showCenter = function(show){
           if (show){
-            if (center)
-              center.setMap(mapComponent);
+            if (centerMarker)
+              centerMarker.setMap(mapComponent);
             else
-              center = createCenter();
+              centerMarker = createCenter();
           }
           else
-            center.setMap(null);
+            centerMarker.setMap(null);
+
+          showingCenter = show;
+        };
+
+        var setCenter = function(location){
+          if (location instanceof google.maps.LatLng){
+            mapComponent.setCenter(location);
+          }
+          else mapComponent.setCenter(markerFunctions.locationFromTextCoords(location));
+
+          centerMarker = createCenter();
+          showCenter(showingCenter);
         };
 
         var getMap = function() { return mapComponent; };
@@ -353,6 +366,7 @@
         return {
           initialize: initialize,
           showCenter: showCenter,
+          setCenter: setCenter,
           getMap: getMap, //TODO (jos) Do I need to expose the map?
           getMarkerFunctions: getMarkerFunctions,
           setZoom: setZoom,
