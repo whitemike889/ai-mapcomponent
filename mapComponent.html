@@ -299,6 +299,12 @@
           };
           mapComponent = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
+          // Listening for the first 'idle' event to tell Android that the map is ready
+          google.maps.event.addListenerOnce(mapComponent, 'idle', function(){
+            console.log('Triggering mapIsReady on Android side.');
+            androidObject.mapIsReadyToAndroid();
+          });
+
           centerMarker = createCenter();
           showCenter(showingCenter);
 
@@ -410,6 +416,14 @@
         sendListOfMarkersToAndroid: function(markers) {
           if (typeof AppInventorMap !== 'undefined')
             AppInventorMap.storeMarkers(markers);
+        },
+
+        /**
+         * Notify Component that the Map is ready.
+         */
+        mapIsReadyToAndroid: function() {
+          if (typeof AppInventorMap !== 'undefined')
+            AppInventorMap.mapIsReady();
         }
 
       };
