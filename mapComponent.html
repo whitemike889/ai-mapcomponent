@@ -194,6 +194,10 @@
           markerCounter = -1;
         };
 
+        var nextMarkerId = function(){
+          return markerCounter + 1;
+        };
+
         var storeMarkers = function () {
           var allMarkers = [];
           markers.forEach(function(marker){
@@ -267,6 +271,7 @@
           showUserMarkers: showUserMarkers,
           hideUserMarkers: hideUserMarkers,
           deleteUserMarkers: deleteUserMarkers,
+          nextMarkerId: nextMarkerId,
           storeMarkers: storeMarkers,
           geolocate: geolocate,
           hideMarker: hideMarker,
