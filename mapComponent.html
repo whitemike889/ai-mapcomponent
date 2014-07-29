@@ -30,7 +30,7 @@
        * @param map the map that all the methods in this object will be associated with.
        * @returns an object with Marker related functions
        */
-      var mapMarkers = function(map) {
+      var mapMarkers = function(mapComponent) {
 
         if (!mapComponent) throw new Error('No map available');
 
@@ -86,6 +86,11 @@
         var hideMarker = function(markerId) {
           if (markers[markerId])
             markers[markerId].setMap(null);
+        }
+
+        var panToMarker = function(markerId) {
+          if (markers[markerId])
+            mapComponent.panTo(markers[markerId].getPosition());
         };
 
         /**
@@ -272,6 +277,7 @@
           storeMarkers: storeMarkers,
           geolocate: geolocate,
           hideMarker: hideMarker,
+          panToMarker: panToMarker,
           markers: markers,
           createInfoWindow: createInfoWindow,
           openInfoWindow: openInfoWindow,
