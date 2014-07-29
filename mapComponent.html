@@ -19,7 +19,7 @@
        * JavaScript API to be used within a customized WebView as an App Inventor Component.
        *
        * It contains two main objects: thisMap and mapMarkers.
-       * thisMap initializes the map and makes user of mapMarkers, which simply encapsulates all
+       * thisMap initializes the map and makes use of mapMarkers, which simply encapsulates all
        * functions related to markers placed in the map. It is possible to create other utility
        * objects with other functionality in the SDK such as drawing, layers, or services.
        */
@@ -28,15 +28,12 @@
        * This function returns an object with certain methods exposed as its API. The functionality
        * of this object is related to management of markers in the map.
        * @param map the map that all the methods in this object will be associated with.
-       * @returns {{addMarker: addMarker, addMarkersFromList: addMarkersFromList,
-       * addListenersUserMarkers: addListenersUserMarkers, showUserMarkers: showUserMarkers,
-       * hideUserMarkers: hideUserMarkers, deleteUserMarkers: deleteUserMarkers}}
+       * @returns an object with Marker related functions
        */
       var mapMarkers = function(map) {
 
         if (!mapComponent) throw new Error('No map available');
 
-        //TODO (jos) abandon the idea of user vs dev markers; they are all user markers.
         var markers = [];
         var markerCounter = 0;
 
@@ -169,7 +166,7 @@
             return new google.maps.LatLng(lat, lng);
         };
 
-        var addListenersUserMarkers = function (add) {
+        var addListenersForMarkers = function (add) {
           if (add){
             google.maps.event.addListener(mapComponent, 'click', function(event) {
               addMarker(event.latLng);
@@ -180,16 +177,16 @@
         };
 
         //TODO (jos) on Android, if markers = [] I could show a Toast - Also on delete functions.
-        var showUserMarkers = function (){
+        var showMarkers = function (){
           markers.forEach(function(marker) { marker.setMap(mapComponent); });
         };
 
-        var hideUserMarkers = function (){
+        var hideMarkers = function (){
           markers.forEach(function(marker) { marker.setMap(null); });
         };
 
-        var deleteUserMarkers = function (){
-          hideUserMarkers();
+        var deleteMarkers = function (){
+          hideMarkers();
           markers = [];
           markerCounter = 0;
         };
@@ -267,15 +264,15 @@
         return {
           addMarker: addMarker,
           addMarkersFromList: addMarkersFromList,
-          addListenersUserMarkers: addListenersUserMarkers,
-          showUserMarkers: showUserMarkers,
-          hideUserMarkers: hideUserMarkers,
-          deleteUserMarkers: deleteUserMarkers,
+          addListenersMarkers: addListenersForMarkers,
+          showMarkers: showMarkers,
+          hideMarkers: hideMarkers,
+          deleteMarkers: deleteMarkers,
           nextMarkerId: nextMarkerId,
           storeMarkers: storeMarkers,
           geolocate: geolocate,
           hideMarker: hideMarker,
-          userMarkers: markers,
+          markers: markers,
           createInfoWindow: createInfoWindow,
           openInfoWindow: openInfoWindow,
           locationFromTextCoords: locationFromTextCoords
