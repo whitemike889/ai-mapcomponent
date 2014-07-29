@@ -38,7 +38,7 @@
 
         //TODO (jos) abandon the idea of user vs dev markers; they are all user markers.
         var markers = [];
-        var markerCounter = -1;
+        var markerCounter = 0;
 
         var addMarker = function (location, title, infoWindowContent, markerId) {
           if (location instanceof google.maps.LatLng){
@@ -48,9 +48,11 @@
               if (markers[markerId]) {
                 markers[markerId].setMap(null);
               }
+              else {
+                markerCounter+=1; //Have to increment the counter anyway if it did not exist.
+              }
 
               theId = markerId;
-              markerCounter+=1; //Have to increment the counter anyway.
             }
             else theId = markerCounter+=1;
             var marker = new google.maps.Marker({
