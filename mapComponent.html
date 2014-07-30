@@ -283,6 +283,12 @@
             marker.info.open(mapComponent, marker);
         }
 
+        var setMarkerTitle = function(markerId, title) {
+          var marker = markers[markerId];
+          if (marker)
+            marker.setTitle(title);
+        };
+
         //API for the mapMarkers object
         return {
           addMarker: addMarker,
@@ -299,7 +305,8 @@
           markers: markers,
           createInfoWindow: createInfoWindow,
           openInfoWindow: openInfoWindow,
-          locationFromTextCoords: locationFromTextCoords
+          locationFromTextCoords: locationFromTextCoords,
+          setMarkerTitle: setMarkerTitle
         };
 
       };
