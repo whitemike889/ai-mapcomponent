@@ -251,8 +251,9 @@
             var firstLocationFound = results[0].geometry.location;
             if (firstLocationFound){
               console.log(firstLocationFound);
-              addMarker(firstLocationFound);
-              mapComponent.panTo(firstLocationFound);
+              var marker = addMarker(firstLocationFound);
+              androidObject.sendGeolocationMarkerAddedToAndroid(marker.id,
+                  results[0].formattedAddress);
             }
             else {
               console.log('No location found!');
@@ -457,6 +458,11 @@
         sendUserMarkerAddedToAndroid: function(markerId) {
           if (typeof AppInventorMap !== 'undefined')
             AppInventorMap.userMarkerAdded(markerId);
+        },
+
+        sendGeolocationMarkerAddedToAndroid: function(markerId, formattedAddress) {
+          if (typeof AppInventorMap !== 'undefined')
+            AppInventorMap.geolocationMarkerAdded(markerId, formattedAddress);
         }
 
       };
