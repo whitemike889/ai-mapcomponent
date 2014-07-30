@@ -27,8 +27,13 @@
       /**
        * This function returns an object with certain methods exposed as its API. The functionality
        * of this object is related to management of markers in the map.
-       * @param map the map that all the methods in this object will be associated with.
-       * @returns an object with Marker related functions
+       * @returns {{addMarker: addMarker, addMarkersFromList: addMarkersFromList,
+       * addListenersForMarkers: addListenersForMarkers, showMarkers: showMarkers,
+       * hideMarkers: hideMarkers, deleteMarkers: deleteMarkers, nextMarkerId: nextMarkerId,
+       * storeMarkers: storeMarkers, geolocate: geolocate, hideMarker: hideMarker,
+       * panToMarker: panToMarker, markers: Array, createInfoWindow: createInfoWindow,
+       * openInfoWindow: openInfoWindow, locationFromTextCoords: locationFromTextCoords}}
+       * @param mapComponent the map to associate the markers with.
        */
       var mapMarkers = function(mapComponent) {
 
@@ -37,6 +42,13 @@
         var markers = [];
         var markerCounter = 0;
 
+        /**
+         * Add a marker to the map, with additional information.
+         * @param markerId Id to handle events
+         * @param infoWindowContent content to be displayed in this marker infoWindow
+         * @param title a title for the marker (shown on hover in browsers)
+         * @param location {google.maps.LatLng} object specifying the position in the map
+         */
         var addMarker = function (location, title, infoWindowContent, markerId) {
           if (location instanceof google.maps.LatLng){
             var theId;
@@ -94,11 +106,13 @@
         };
 
         /**
+         * Decodes the JSON input and generates and displays markers for each of the objects.
          * Sample data:
          * "[
          *     {"id":0,"lat":48.856614,"lng":2.3522219000000177},
          *     {"id":1,"lat":48,"lng":3,"title":"near paris","content":"near Paris content"}
          *  ]"
+         * @param listOfMarkers a JSON representation of the markers to be displayed
          */
         var addMarkersFromList = function(listOfMarkers) {
           var allMarkers = [];
@@ -144,7 +158,8 @@
          * Generates a LatLng map object from coordinates passed in as a string. Valid ranges are:
          * Lat [-90, 90], and Lng [-180, 180].
          * @param locationText a string in the format 'float, float'
-         * @returns {*} a LatLng object of null if the location is not in the right format.
+         * @returns {google.maps.LatLng} a LatLng object or null if the location is not in the
+         * right format.
          */
         var locationFromTextCoords = function(locationText) {
           var lat, lng;
@@ -181,7 +196,6 @@
             google.maps.event.clearListeners(mapComponent,'click');
         };
 
-        //TODO (jos) on Android, if markers = [] I could show a Toast - Also on delete functions.
         var showMarkers = function (){
           markers.forEach(function(marker) { marker.setMap(mapComponent); });
         };
@@ -379,16 +393,21 @@
           initialize: initialize,
           showCenter: showCenter,
           setCenter: setCenter,
-          getMap: getMap, //TODO (jos) Do I need to expose the map?
+          getMap: getMap, // For Debugging (not used from the component).
           getMarkerFunctions: getMarkerFunctions,
           setZoom: setZoom,
           getZoom: getZoom
         }
-      //TODO (jos) Magic numbers: the center of the map has to be a variable. Will come from Android
+      //TODO (jos) Magic numbers: the center of the map will come from Android
       }(48, 3, true, 6); //Auto initialize the thisMap object
 
-      //TODO (jos) Can I somehow inject this object (or inject something in this object) to
-      // handle user feedback also on the JavaScript side?
+      /**
+       * An object to hold functions that communicate directly to Android through the JS interface.
+       * @type {{ERROR_ILLEGAL_COORDS_FORMAT: number, ERROR_PARSING_MARKERS_LIST: number,
+       * dispatchErrorToAndroid: dispatchErrorToAndroid, sendMarkerToAndroid: sendMarkerToAndroid,
+       * sendListOfMarkersToAndroid: sendListOfMarkersToAndroid,
+       * mapIsReadyToAndroid: mapIsReadyToAndroid}}
+       */
       var androidObject = {
 
         // CONSTANTS FOR ERRORS, As defined on the Android side.
