@@ -71,6 +71,7 @@
               map: mapComponent
             });
             google.maps.event.addListener(marker, 'click', markerClicked(theId));
+            google.maps.event.addListener(marker, 'dblclick', markerClicked(theId, true));
             markers[theId] = marker;
 
             if (infoWindowContent) {
@@ -86,21 +87,23 @@
         };
 
         // Closure needed to associate each markerId with its click handler function
-        function markerClicked(markerId) {
+        function markerClicked(markerId, doubleClick) {
           return function(){
-            handleMarkerById(markerId);
+            handleMarkerById(markerId, doubleClick);
           }
         }
 
-        function handleMarkerById(markerId) {
-          console.log('Signaling Android side to do something with marker ' + markerId);
-          androidObject.sendMarkerToAndroid(markerId);
-        };
+        function handleMarkerById(markerId, doubleClick) {
+          if (doubleClick)
+            androidObject.sendDoubleMarkerToAndroid(markerId);
+          else
+            androidObject.sendMarkerToAndroid(markerId);
+        }
 
         var hideMarker = function(markerId) {
           if (markers[markerId])
             markers[markerId].setMap(null);
-        }
+        };
 
         var panToMarker = function(markerId) {
           if (markers[markerId])
@@ -281,7 +284,13 @@
           var marker = markers[markerId];
           if (marker && marker.info)
             marker.info.open(mapComponent, marker);
-        }
+        };
+
+        var closeInfoWindow = function(markerId){
+          var marker = markers[markerId];
+          if (marker && marker.info)
+            marker.info.close();
+        };
 
         var setMarkerTitle = function(markerId, title) {
           var marker = markers[markerId];
@@ -305,6 +314,7 @@
           markers: markers,
           createInfoWindow: createInfoWindow,
           openInfoWindow: openInfoWindow,
+          closeInfoWindow: closeInfoWindow,
           locationFromTextCoords: locationFromTextCoords,
           setMarkerTitle: setMarkerTitle
         };
@@ -326,7 +336,8 @@
         function initialize() {
           var mapOptions = {
             zoom: zoom,
-            center: new google.maps.LatLng(centerLat, centerLng)
+            center: new google.maps.LatLng(centerLat, centerLng),
+            disableDoubleClickZoom: true
           };
           mapComponent = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
@@ -444,6 +455,11 @@
         sendMarkerToAndroid: function(markerId) {
           if (typeof AppInventorMap !== 'undefined')
             AppInventorMap.handleMarker(markerId);
+        },
+
+        sendDoubleMarkerToAndroid: function(markerId) {
+          if (typeof AppInventorMap !== 'undefined')
+            AppInventorMap.handleDoubleMarker(markerId);
         },
 
         /**
