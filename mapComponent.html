@@ -280,7 +280,7 @@
         var openInfoWindow = function(markerId){
           var marker = markers[markerId];
           if (marker && marker.info)
-            marker.info.open(map, marker)
+            marker.info.open(mapComponent, marker);
         }
 
         //API for the mapMarkers object
