@@ -253,7 +253,7 @@
               console.log(firstLocationFound);
               var marker = addMarker(firstLocationFound);
               androidObject.sendGeolocationMarkerAddedToAndroid(marker.id,
-                  results[0].formattedAddress);
+                  results[0].formatted_address);
             }
             else {
               console.log('No location found!');
