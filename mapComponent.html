@@ -81,6 +81,8 @@
             console.log('Calling Error handler on Android side');
             androidObject.dispatchErrorToAndroid(androidObject.ERROR_ILLEGAL_COORDS_FORMAT);
           }
+
+          return marker;
         };
 
         // Closure needed to associate each markerId with its click handler function
@@ -189,7 +191,8 @@
         var addListenersForMarkers = function (add) {
           if (add){
             google.maps.event.addListener(mapComponent, 'click', function(event) {
-              addMarker(event.latLng);
+              var marker = addMarker(event.latLng);
+              androidObject.sendUserMarkerAddedToAndroid(marker.id);
             });
           }
           else
@@ -249,7 +252,7 @@
             if (firstLocationFound){
               console.log(firstLocationFound);
               addMarker(firstLocationFound);
-              map.panTo(firstLocationFound);
+              mapComponent.panTo(firstLocationFound);
             }
             else {
               console.log('No location found!');
@@ -449,6 +452,11 @@
         mapIsReadyToAndroid: function() {
           if (typeof AppInventorMap !== 'undefined')
             AppInventorMap.mapIsReady();
+        },
+
+        sendUserMarkerAddedToAndroid: function(markerId) {
+          if (typeof AppInventorMap !== 'undefined')
+            AppInventorMap.userMarkerAdded(markerId);
         }
 
       };
