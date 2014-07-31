@@ -104,6 +104,11 @@
             markers[markerId].setMap(null);
         };
 
+        var showMarker = function(markerId) {
+          if (markers[markerId])
+            markers[markerId].setMap(mapComponent);
+        };
+
         var panToMarker = function(markerId) {
           if (markers[markerId])
             mapComponent.panTo(markers[markerId].getPosition());
@@ -309,6 +314,7 @@
           storeMarkers: storeMarkers,
           geolocate: geolocate,
           hideMarker: hideMarker,
+          showMarker: showMarker,
           panToMarker: panToMarker,
           markers: markers,
           createInfoWindow: createInfoWindow,
