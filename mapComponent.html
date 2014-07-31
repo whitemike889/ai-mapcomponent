@@ -99,16 +99,6 @@
             androidObject.sendMarkerToAndroid(markerId);
         }
 
-        var hideMarker = function(markerId) {
-          if (markers[markerId])
-            markers[markerId].setMap(null);
-        };
-
-        var showMarker = function(markerId) {
-          if (markers[markerId])
-            markers[markerId].setMap(mapComponent);
-        };
-
         var panToMarker = function(markerId) {
           if (markers[markerId])
             mapComponent.panTo(markers[markerId].getPosition());
@@ -206,8 +196,18 @@
             google.maps.event.clearListeners(mapComponent,'click');
         };
 
+        var showMarker = function(markerId) {
+          if (markers[markerId])
+            markers[markerId].setMap(mapComponent);
+        };
+
         var showMarkers = function (){
           markers.forEach(function(marker) { marker.setMap(mapComponent); });
+        };
+
+        var hideMarker = function(markerId) {
+          if (markers[markerId])
+            markers[markerId].setMap(null);
         };
 
         var hideMarkers = function (){
@@ -307,14 +307,14 @@
           addMarker: addMarker,
           addMarkersFromList: addMarkersFromList,
           addListenersForMarkers: addListenersForMarkers,
+          showMarker: showMarker,
           showMarkers: showMarkers,
+          hideMarker: hideMarker,
           hideMarkers: hideMarkers,
           deleteMarkers: deleteMarkers,
           nextMarkerId: nextMarkerId,
           storeMarkers: storeMarkers,
           geolocate: geolocate,
-          hideMarker: hideMarker,
-          showMarker: showMarker,
           panToMarker: panToMarker,
           markers: markers,
           createInfoWindow: createInfoWindow,
