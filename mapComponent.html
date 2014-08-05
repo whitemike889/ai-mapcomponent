@@ -155,6 +155,22 @@
           });
         };
 
+        var locationFromLatLngCoords = function(lat, lng){
+          var errorParsing = false;
+
+          if (isNaN(lat) || isNaN(lng)) errorParsing = true;
+          if (lat < -90 || lat > 90) errorParsing = true;
+          if (lng < -180 || lng > 180) errorParsing = true;
+
+          if (errorParsing){
+            androidObject.dispatchErrorToAndroid(androidObject.ERROR_ILLEGAL_COORDS_FORMAT);
+            return null;
+          }
+          else
+            return new google.maps.LatLng(lat, lng);
+
+        };
+
         /**
          * Generates a LatLng map object from coordinates passed in as a string. Valid ranges are:
          * Lat [-90, 90], and Lng [-180, 180].
@@ -164,27 +180,17 @@
          */
         var locationFromTextCoords = function(locationText) {
           var lat, lng;
-          var errorParsing = false;
 
           var locationSplit = locationText.split(',');
           if (locationSplit.length === 2){
             lat = parseFloat(locationSplit[0]);
             lng = parseFloat(locationSplit[1]);
-            if (isNaN(lat) || isNaN(lng))
-              errorParsing = true;
-            if (lat < -90 || lat > 90) errorParsing = true;
-            if (lng < -180 || lng > 180) errorParsing = true;
+            return locationFromLatLngCoords(lat, lng);
           }
           else {
-            errorParsing = true;
-          }
-
-          if (errorParsing){
             androidObject.dispatchErrorToAndroid(androidObject.ERROR_ILLEGAL_COORDS_FORMAT);
             return null;
           }
-          else
-            return new google.maps.LatLng(lat, lng);
         };
 
         var addListenersForMarkers = function (add) {
@@ -332,6 +338,7 @@
           openInfoWindow: openInfoWindow,
           closeInfoWindow: closeInfoWindow,
           locationFromTextCoords: locationFromTextCoords,
+          locationFromLatLngCoords: locationFromLatLngCoords,
           setMarkerTitle: setMarkerTitle
         };
 
