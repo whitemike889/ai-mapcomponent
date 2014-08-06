@@ -204,26 +204,30 @@
             google.maps.event.clearListeners(mapComponent,'click');
         };
 
-        var showMarker = function(markerId) {
-          if (markers[markerId])
-            markers[markerId].setMap(mapComponent);
+        var showMarker = function(markerId, show) {
+          if (show) {
+            if (markers[markerId]){
+              markers[markerId].setMap(mapComponent);
+             }
+          }
+          else {
+            if (markers[markerId]) {
+              markers[markerId].setMap(null);
+            }
+          }
         };
 
-        var showMarkers = function (){
-          markers.forEach(function(marker) { marker.setMap(mapComponent); });
-        };
-
-        var hideMarker = function(markerId) {
-          if (markers[markerId])
-            markers[markerId].setMap(null);
-        };
-
-        var hideMarkers = function (){
-          markers.forEach(function(marker) { marker.setMap(null); });
+        var showMarkers = function (show){
+          if (show) {
+            markers.forEach(function(marker) { marker.setMap(mapComponent); });
+          }
+          else {
+            markers.forEach(function(marker) { marker.setMap(null); });
+          }
         };
 
         var deleteMarkers = function (){
-          hideMarkers();
+          showMarkers(false);
           markers = [];
           markerCounter = 0;
         };
@@ -327,8 +331,6 @@
           addListenersForMarkers: addListenersForMarkers,
           showMarker: showMarker,
           showMarkers: showMarkers,
-          hideMarker: hideMarker,
-          hideMarkers: hideMarkers,
           deleteMarkers: deleteMarkers,
           nextMarkerId: nextMarkerId,
           storeMarkers: storeMarkers,
