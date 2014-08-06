@@ -238,8 +238,9 @@
 
             var mark = {};
             mark.id = marker.id;
-            mark.locationCoords = marker.getPosition().lat() + ',' + marker.getPosition().lng();
-              mark.title = marker.title || '';
+            mark.lat = marker.getPosition().lat();
+            mark.lng = marker.getPosition().lng();
+            mark.title = marker.title || '';
             if (marker.info && marker.info.content)
               mark.content = marker.info.content;
             else
