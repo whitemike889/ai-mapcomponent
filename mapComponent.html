@@ -266,7 +266,7 @@
         };
 
         //TODO (jos) explicit Exception handling for results will be done in the Android side
-        var geolocationResults = function(results, status){
+        function geolocationResults(results, status){
           var notifyAndroid = false;
           if (status === 'OK') {
             var firstLocationFound = results[0].geometry.location;
