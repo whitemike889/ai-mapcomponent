@@ -26,57 +26,72 @@
       /**
        * This function returns an object with certain methods exposed as its API. The functionality
        * of this object is related to management of markers in the map.
-       * @returns {{addMarker: addMarker, addMarkersFromList: addMarkersFromList,
-       * addListenersForMarkers: addListenersForMarkers, showMarker: showMarker,
-       * showMarkers: showMarkers, hideMarker: hideMarker, hideMarkers: hideMarkers,
-       * deleteMarkers: deleteMarkers, nextMarkerId: nextMarkerId, storeMarkers: storeMarkers,
-       * geolocate: geolocate, panToMarker: panToMarker, markers: Array,
-       * reateInfoWindow: createInfoWindow, openInfoWindow: openInfoWindow,
-       * closeInfoWindow: closeInfoWindow, locationFromTextCoords: locationFromTextCoords,
-       * setMarkerTitle: setMarkerTitle}}
+       * @returns an Object with methods related to Marker management.
        * @param mapComponent the map to associate the markers with.
        */
       var mapMarkers = function(mapComponent) {
 
         if (!mapComponent) throw new Error('No map available');
+        // TODO (jos) there is no way to see this from the phone; create an alert instead?
 
-        var markers = [];
-        var markerCounter = 0;
+        function AIMarker(marker){
+          if (marker instanceof google.maps.Marker){
+            this.marker = marker;
+            this.id = marker.getPosition().toString(); //Use position as unique id
+          }
+          else {
+            console.log('Calling Error handler on Android side - Invalid Marker');
+            androidObject.dispatchErrorToAndroid(androidObject.ERROR_INVALID_MARKER);
+          }
+        }
+
+        AIMarker.prototype.equals = function(otherMarker){
+          if (otherMarker == null) return false;
+          if (otherMarker instanceof AIMarker){
+            //Equality is based on position - two markers on the same position are the same marker
+            return this.marker.getPosition().toString() ===
+                otherMarker.marker.getPosition().toString();
+          }
+          return false;
+
+        }
+
+        var aiMarkers = {};
 
         /**
-         * Add a marker to the map, with additional information.
-         * @param markerId Id to handle events
+         * Add a marker, with additional information, to the map.
+         * @param location {google.maps.LatLng} object specifying the position in the map
          * @param infoWindowContent content to be displayed in this marker infoWindow
          * @param title a title for the marker (shown on hover in browsers)
-         * @param location {google.maps.LatLng} object specifying the position in the map
          */
-        var addMarker = function (location, title, infoWindowContent, markerId) {
+        var addAIMarker = function(location, title, infoWindowContent){
+          var newAiMarker, marker;
           if (location instanceof google.maps.LatLng){
-            var theId;
-            if (markerId >= 0) {
-              // It might already exist, delete it first and then reuse the id.
-              if (markers[markerId]) {
-                markers[markerId].setMap(null);
+            newAiMarker = aiMarkers[location.toString()];
+            if (newAiMarker) { //If it exists, there's no need to create it
+              marker = newAiMarker.marker;
+              // We override values even if they are not different - it's easier.
+              marker.title = title;
+              if (infoWindowContent && marker.info){
+                marker.info.setContent(infoWindowContent);
               }
-              else {
-                markerCounter+=1; //Have to increment the counter anyway if it did not exist.
-              }
-
-              theId = markerId;
             }
-            else theId = markerCounter+=1;
-            var marker = new google.maps.Marker({
-              id: theId,
-              position: location,
-              title: title || '',
-              map: mapComponent
-            });
-            google.maps.event.addListener(marker, 'click', markerClicked(theId));
-            google.maps.event.addListener(marker, 'dblclick', markerClicked(theId, true));
-            markers[theId] = marker;
+            else {
+              marker = new google.maps.Marker({
+                position: location,
+                title: title || '',
+                map: mapComponent
+              });
 
-            if (infoWindowContent) {
-              createInfoWindow(theId, infoWindowContent);
+              newAiMarker = new AIMarker(marker);
+              var theId = newAiMarker.id;
+              google.maps.event.addListener(marker, 'click', markerClicked(theId));
+              google.maps.event.addListener(marker, 'dblclick', markerClicked(theId, true));
+              aiMarkers[marker.getPosition().toString()] = newAiMarker;
+
+              if (infoWindowContent) {
+                createInfoWindow(theId, infoWindowContent);
+              }
             }
           }
           else {
@@ -84,7 +99,7 @@
             androidObject.dispatchErrorToAndroid(androidObject.ERROR_ILLEGAL_COORDS_FORMAT);
           }
 
-          return marker;
+          return newAiMarker;
         };
 
         // Closure needed to associate each markerId with its click handler function
@@ -95,15 +110,32 @@
         }
 
         function handleMarkerById(markerId, doubleClick) {
+          var markerJson = createJsonMarkerFromId(markerId);
           if (doubleClick)
-            androidObject.sendDoubleMarkerToAndroid(markerId);
-          else
-            androidObject.sendMarkerToAndroid(markerId);
+            androidObject.sendDoubleMarkerToAndroid(markerJson);
+          else{
+            androidObject.sendMarkerToAndroid(markerJson);
+          }
+        }
+
+        function createJsonMarkerFromId(markerId){
+          var currentAiMarker = aiMarkers[markerId];
+          var markerObject = {
+            lat: currentAiMarker.marker.getPosition().lat(),
+            lng: currentAiMarker.marker.getPosition().lng(),
+            title: currentAiMarker.marker.title || '',
+            info: (currentAiMarker.marker.info && currentAiMarker.marker.info.content) ?
+                currentAiMarker.marker.info.content : ''
+          }
+          var markerJson = JSON.stringify(markerObject);
+
+          return markerJson;
         }
 
         var panToMarker = function(markerId) {
-          if (markers[markerId])
-            mapComponent.panTo(markers[markerId].getPosition());
+          var markerToPanTo = aiMarkers[markerId].marker;
+          if (markerToPanTo)
+            mapComponent.panTo(markerToPanTo.getPosition());
         };
 
         /**
@@ -127,18 +159,22 @@
 
           function decodeMarker(markerObject){
             var markerData = [];
+            var lat, lng;
 
-            if (markerObject.locationCoords)
-              markerData[0] = locationFromTextCoords(markerObject.locationCoords);
+            if (markerObject.lat)
+              lat = markerObject.lat;
+
+            if (markerObject.lng)
+              lng = markerObject.lng;
+
+            if (lat && lng)
+              markerData[0] = locationFromLatLngCoords(lat, lng);
 
             if (markerObject.title)
               markerData[1] = markerObject.title;
 
             if (markerObject.content)
               markerData[2] = markerObject.content;
-
-            if (markerObject.id >= 0)
-              markerData[3] = markerObject.id;
 
             // Location has to be available(other fields are optional).
             if (markerData[0] instanceof google.maps.LatLng)
@@ -151,7 +187,7 @@
             // Try to decode each marker and even if some fail, still add the others.
             var markerData = decodeMarker(markerObject);
             if (markerData)
-              addMarker(markerData[0], markerData[1], markerData[2], markerData[3]);
+              addAIMarker(markerData[0], markerData[1], markerData[2]);
           });
         };
 
@@ -196,8 +232,9 @@
         var addListenersForMarkers = function (add) {
           if (add){
             google.maps.event.addListener(mapComponent, 'click', function(event) {
-              var marker = addMarker(event.latLng);
-              androidObject.sendUserMarkerAddedToAndroid(marker.id);
+              var aiMarker = addAIMarker(event.latLng);
+              var markerJson = createJsonMarkerFromId(aiMarker.id);
+              androidObject.sendUserMarkerAddedToAndroid(markerJson);
             });
           }
           else
@@ -205,54 +242,53 @@
         };
 
         var showMarker = function(markerId, show) {
+          var markerToShow = aiMarkers[markerId].marker;
           if (show) {
-            if (markers[markerId]){
-              markers[markerId].setMap(mapComponent);
-             }
+            if (markerToShow){
+              markerToShow.setMap(mapComponent);
+            }
           }
           else {
-            if (markers[markerId]) {
-              markers[markerId].setMap(null);
+            if (markerToShow) {
+              markerToShow.setMap(null);
             }
           }
         };
 
         var showMarkers = function (show){
           if (show) {
-            markers.forEach(function(marker) { marker.setMap(mapComponent); });
+            for (var key in aiMarkers){
+              aiMarkers[key].marker.setMap(mapComponent);
+            }
           }
           else {
-            markers.forEach(function(marker) { marker.setMap(null); });
+            for (var key in aiMarkers){
+              aiMarkers[key].marker.setMap(null);
+            }
           }
         };
 
         var deleteMarkers = function (){
           showMarkers(false);
-          markers = [];
-          markerCounter = 0;
-        };
-
-        var nextMarkerId = function(){
-          return markerCounter + 1;
+          aiMarkers = {};
         };
 
         var storeMarkers = function () {
           var allMarkers = [];
-          markers.forEach(function(marker){
+          for (var key in aiMarkers){
+            var marker = aiMarkers[key].marker;
 
-            var mark = {};
-            mark.id = marker.id;
-            mark.lat = marker.getPosition().lat();
-            mark.lng = marker.getPosition().lng();
-            mark.title = marker.title || '';
+            var jsMarker = {};
+            jsMarker.lat = marker.getPosition().lat();
+            jsMarker.lng = marker.getPosition().lng();
+            jsMarker.title = marker.title || '';
             if (marker.info && marker.info.content)
-              mark.content = marker.info.content;
+              jsMarker.content = marker.info.content;
             else
-              mark.content = '';
+              jsMarker.content = '';
 
-
-            allMarkers.push(mark);
-          });
+            allMarkers.push(jsMarker);
+          }
 
           androidObject.sendListOfMarkersToAndroid(JSON.stringify(allMarkers));
 
@@ -272,8 +308,9 @@
             var firstLocationFound = results[0].geometry.location;
             if (firstLocationFound){
               console.log(firstLocationFound);
-              var marker = addMarker(firstLocationFound);
-              androidObject.sendGeolocationMarkerAddedToAndroid(marker.id,
+              var marker = addAIMarker(firstLocationFound);
+              var markerJson = createJsonMarkerFromId(marker.id);
+              androidObject.sendGeolocationMarkerAddedToAndroid(markerJson,
                   results[0].formatted_address);
             }
             else {
@@ -301,48 +338,47 @@
           var infoWindow = new google.maps.InfoWindow({
             content: content
           });
-          var marker = markers[markerId];
+          var marker = aiMarkers[markerId].marker;
           if (marker)
             marker.info = infoWindow;
         };
 
         var openInfoWindow = function(markerId){
-          var marker = markers[markerId];
+          var marker = aiMarkers[markerId].marker;
           if (marker && marker.info)
             marker.info.open(mapComponent, marker);
         };
 
         var closeInfoWindow = function(markerId){
-          var marker = markers[markerId];
+          var marker = aiMarkers[markerId].marker;
           if (marker && marker.info)
             marker.info.close();
         };
 
         var setMarkerTitle = function(markerId, title) {
-          var marker = markers[markerId];
+          var marker = aiMarkers[markerId].marker;
           if (marker)
             marker.setTitle(title);
         };
 
         //API for the mapMarkers object
         return {
-          addMarker: addMarker,
           addMarkersFromList: addMarkersFromList,
           addListenersForMarkers: addListenersForMarkers,
           showMarker: showMarker,
           showMarkers: showMarkers,
           deleteMarkers: deleteMarkers,
-          nextMarkerId: nextMarkerId,
           storeMarkers: storeMarkers,
           geolocate: geolocate,
           panToMarker: panToMarker,
-          markers: markers,
           createInfoWindow: createInfoWindow,
           openInfoWindow: openInfoWindow,
           closeInfoWindow: closeInfoWindow,
           locationFromTextCoords: locationFromTextCoords,
           locationFromLatLngCoords: locationFromLatLngCoords,
-          setMarkerTitle: setMarkerTitle
+          setMarkerTitle: setMarkerTitle,
+          addAIMarker: addAIMarker,
+          aiMarkers: aiMarkers
         };
 
       };
@@ -465,6 +501,7 @@
         // CONSTANTS FOR ERRORS, As defined on the Android side.
         ERROR_ILLEGAL_COORDS_FORMAT: 2502,
         ERROR_PARSING_MARKERS_LIST: 2503,
+        ERROR_INVALID_MARKER: 2504,
         ERROR_NO_GEOLOCATION_RESULTS: 2506,
 
         /**
@@ -483,14 +520,14 @@
         /**
          * Function to call to the Android side after a user has clicked on a marker
          */
-        sendMarkerToAndroid: function(markerId) {
+        sendMarkerToAndroid: function(jsonMarker) {
           if (typeof AppInventorMap !== 'undefined')
-            AppInventorMap.handleMarker(markerId);
+            AppInventorMap.handleMarker(jsonMarker);
         },
 
-        sendDoubleMarkerToAndroid: function(markerId) {
+        sendDoubleMarkerToAndroid: function(jsonMarker) {
           if (typeof AppInventorMap !== 'undefined')
-            AppInventorMap.handleDoubleMarker(markerId);
+            AppInventorMap.handleDoubleMarker(jsonMarker);
         },
 
         /**
@@ -509,14 +546,14 @@
             AppInventorMap.mapIsReady();
         },
 
-        sendUserMarkerAddedToAndroid: function(markerId) {
+        sendUserMarkerAddedToAndroid: function(markerJson) {
           if (typeof AppInventorMap !== 'undefined')
-            AppInventorMap.userMarkerAdded(markerId);
+            AppInventorMap.userMarkerAdded(markerJson);
         },
 
-        sendGeolocationMarkerAddedToAndroid: function(markerId, formattedAddress) {
+        sendGeolocationMarkerAddedToAndroid: function(markerJson, formattedAddress) {
           if (typeof AppInventorMap !== 'undefined')
-            AppInventorMap.geolocationMarkerAdded(markerId, formattedAddress);
+            AppInventorMap.geolocationMarkerAdded(markerJson, formattedAddress);
         }
 
       };
