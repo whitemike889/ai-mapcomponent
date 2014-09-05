@@ -32,7 +32,6 @@
       var mapMarkers = function(mapComponent) {
 
         if (!mapComponent) throw new Error('No map available');
-        // TODO (jos) there is no way to see this from the phone; create an alert instead?
 
         function AIMarker(marker){
           if (marker instanceof google.maps.Marker){
@@ -142,8 +141,8 @@
          * Decodes the JSON input and generates and displays markers for each of the objects.
          * Sample data:
          * "[
-         *     {"id":0,"lat":48.856614,"lng":2.3522219000000177},
-         *     {"id":1,"lat":48,"lng":3,"title":"near paris","content":"near Paris content"}
+         *     {"lat":48.856614,"lng":2.3522219000000177,"title":"","content":""},
+         *     {"lat":48,"lng":3,"title":"near paris","content":"near Paris content"}
          *  ]"
          * @param listOfMarkers a JSON representation of the markers to be displayed
          */
@@ -153,7 +152,7 @@
             allMarkers = JSON.parse(listOfMarkers);
           }
           catch(parseError) {
-            console.log('List of Markers is not valid JSON.');
+            console.log('List of Markers is not valid JSON. Notifying Android side.');
             androidObject.dispatchErrorToAndroid(androidObject.ERROR_PARSING_MARKERS_LIST)
           }
 
@@ -301,7 +300,6 @@
           geocoder.geocode({address: address}, geolocationResults)
         };
 
-        //TODO (jos) explicit Exception handling for results will be done in the Android side
         function geolocationResults(results, status){
           var notifyAndroid = false;
           if (status === 'OK') {
